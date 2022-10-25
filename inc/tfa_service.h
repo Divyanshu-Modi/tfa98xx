@@ -8,33 +8,12 @@
  *
  */
 
-
-
 #ifndef TFA_SERVICE_H
 #define TFA_SERVICE_H
 
-//#include "config.h"
-// workaround for Visual Studio: 
-// fatal error C1083: Cannot open include file: 'config.h': No such file or directory
-#ifdef __KERNEL__
 #include <linux/types.h>
-#else
-#include <stdint.h>
-#endif
-#ifdef __cplusplus
-extern "C" {
-#include "TFA_I2C.h"
-#endif
 
-/* Linux kernel module defines TFA98XX_GIT_VERSIONS in the linux_driver/Makefile */
-#if !defined(TFA98XX_GIT_VERSIONS)
-#include "versions.h"
-#endif
-#ifdef TFA98XX_GIT_VERSIONS
-  #define TFA98XX_API_REV_STR "v6.7.14"/*TFA98XX_GIT_VERSIONS*/
-#else
-  #define TFA98XX_API_REV_STR "v6.7.14"
-#endif
+#define TFA98XX_API_REV_STR "v6.7.14"
 
 #include "tfa_device.h"
 
@@ -1014,7 +993,5 @@ enum Tfa98xx_Error tfa_status(struct tfa_device *tfa);
 int tfa_dev_get_mtpb(struct tfa_device *tfa);
 
 enum Tfa98xx_Error tfaGetFwApiVersion(struct tfa_device *tfa, unsigned char *pFirmwareVersion);
-#ifdef __cplusplus
-}
-#endif
+
 #endif				/* TFA_SERVICE_H */

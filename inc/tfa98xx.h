@@ -67,19 +67,17 @@ struct tfa98xx_baseprofile {
 	int sr_rate_sup[TFA98XX_NUM_RATES]; /* sample rates supported by this profile */
 	struct list_head list;              /* list of all profiles */
 };
+
 enum tfa_reset_polarity{
-	LOW=0,
-	HIGH=1
+	LOW  = 0,
+	HIGH = 1
 };
+
 struct tfa98xx {
 	struct regmap *regmap;
 	struct i2c_client *i2c;
 	struct regulator *vdd;
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,18,0)
 	struct snd_soc_component *codec;
-#else
-	struct snd_soc_codec *codec;
-#endif
 	struct workqueue_struct *tfa98xx_wq;
 	struct delayed_work init_work;
 	struct delayed_work monitor_work;
@@ -129,6 +127,4 @@ struct tfa98xx {
 	uint16_t cal_data;
 };
 
-
 #endif /* __TFA98XX_INC__ */
-

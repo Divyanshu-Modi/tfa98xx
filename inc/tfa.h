@@ -8,12 +8,11 @@
  *
  */
 
-
 #ifndef TFA_H_
 #define TFA_H_
 
 /* set the limit for the container file length */
-#define TFA_MAX_CNT_LENGTH (256*1024)
+#define TFA_MAX_CNT_LENGTH (256 * 1024)
 
 extern struct tfa_device **devs;
 

@@ -8,12 +8,9 @@
  *
  */
 
-
-
 /*
-	Linux kernel specific definitions used by code shared with
-	Linux/Windows user space.
-*/
+ * Linux kernel specific definitions used by code
+ */
 
 #ifndef __CONFIG_LINUX_KERNEL_INC__
 #define __CONFIG_LINUX_KERNEL_INC__

@@ -83,6 +83,7 @@ void tfaContShowHeader(TfaHeader_t *hdr) {
 
 	_id[1] = hdr->id >> 8;
 	_id[0] = hdr->id & 0xff;
+
 	pr_debug("\tid:%.2s version:%.2s subversion:%.2s\n", _id,
 		hdr->version, hdr->subversion);
 	pr_debug("\tsize:%d CRC:0x%08x \n", hdr->size, hdr->CRC);
@@ -185,27 +186,26 @@ TfaLiveDataList_t *tfaContGetDevLiveDataList(TfaContainer_t * cont, int devIdx,
 /*
  * Get the max volume step associated with Nth profile for the Nth device
  */
-int tfacont_get_max_vstep(struct tfa_device *tfa, int prof_idx) {
+int tfacont_get_max_vstep(struct tfa_device *tfa, int prof_idx)
+{
 	TfaVolumeStep2File_t *vp;
 	struct TfaVolumeStepMax2File *vp3;
 	int vstep_count = 0;
+
 	vp = (TfaVolumeStep2File_t *)tfacont_getfiledata(tfa, prof_idx, volstepHdr);
 	if (vp == NULL)
 		return 0;
+
 	/* check the header type to load different NrOfVStep appropriately */
 	if (tfa->tfa_family == 2) {
 		/* this is actually tfa2, so re-read the buffer*/
-		vp3 = (struct TfaVolumeStepMax2File *)
-			tfacont_getfiledata(tfa, prof_idx, volstepHdr);
-		if (vp3) {
+		vp3 = (struct TfaVolumeStepMax2File *)tfacont_getfiledata(tfa, prof_idx, volstepHdr);
+		if (vp3)
 			vstep_count = vp3->NrOfVsteps;
-		}
-	}
-	else {
+	} else {
 		/* this is max1*/
-		if (vp) {
+		if (vp)
 			vstep_count = vp->vsteps;
-		}
 	}
 	return vstep_count;
 }
@@ -241,9 +241,8 @@ TfaFileDsc_t *tfacont_getfiledata(struct tfa_device *tfa, int prof_idx, enum Tfa
 			if (file != NULL) {
 				hdr = (TfaHeader_t *)file->data;
 				/* check for file type */
-				if (hdr->id == type) {
+				if (hdr->id == type)
 					return (TfaFileDsc_t *)&file->data;
-				}
 			}
 		}
 	}
@@ -264,9 +263,8 @@ TfaFileDsc_t *tfacont_getfiledata(struct tfa_device *tfa, int prof_idx, enum Tfa
 				hdr = (TfaHeader_t *)file->data;
 				if (hdr != NULL) {
 					/* check for file type */
-					if (hdr->id == type) {
+					if (hdr->id == type)
 						return (TfaFileDsc_t *)&file->data;
-					}
 				}
 			}
 		}
@@ -299,10 +297,9 @@ static enum Tfa98xx_Error tfaContWriteVstep(struct tfa_device *tfa, TfaVolumeSte
 		err = tfa98xx_dsp_write_preset(tfa, sizeof(vp->vstep[0].preset), vp->vstep[vstep].preset);
 		if (err != Tfa98xx_Error_Ok)
 			return err;
-		err = tfa_cont_write_filterbank(tfa, vp->vstep[vstep].filter);
 
-	}
-	else {
+		err = tfa_cont_write_filterbank(tfa, vp->vstep[vstep].filter);
+	} else {
 		pr_err("Incorrect volume given. The value vstep[%d] >= %d\n", vstep, vp->vsteps);
 		err = Tfa98xx_Error_Bad_Parameter;
 	}
@@ -316,8 +313,10 @@ static struct TfaVolumeStepMessageInfo *
 tfaContGetmsgInfoFromReg(struct TfaVolumeStepRegisterInfo *regInfo)
 {
 	char *p = (char*)regInfo;
+
 	p += sizeof(regInfo->NrOfRegisters) + (regInfo->NrOfRegisters * sizeof(uint32_t));
-	return (struct TfaVolumeStepMessageInfo*) p;
+
+	return (struct TfaVolumeStepMessageInfo*)p;
 }
 
 static int
@@ -346,9 +345,10 @@ static struct  TfaVolumeStepRegisterInfo*
 tfaContGetNextRegFromEndInfo(struct  TfaVolumeStepMessageInfo *msgInfo)
 {
 	char *p = (char*)msgInfo;
-	p += sizeof(msgInfo->NrOfMessages);
-	return (struct TfaVolumeStepRegisterInfo*) p;
 
+	p += sizeof(msgInfo->NrOfMessages);
+
+	return (struct TfaVolumeStepRegisterInfo*) p;
 }
 
 static struct TfaVolumeStepRegisterInfo*
@@ -356,17 +356,16 @@ tfaContGetRegForVstep(TfaVolumeStepMax2File_t *vp, int idx)
 {
 	int i, j, nrMessage;
 
-	struct TfaVolumeStepRegisterInfo *regInfo
-		= (struct TfaVolumeStepRegisterInfo*) vp->vstepsBin;
+	struct TfaVolumeStepRegisterInfo *regInfo = (struct TfaVolumeStepRegisterInfo*) vp->vstepsBin;
 	struct TfaVolumeStepMessageInfo *msgInfo = NULL;
 
 	for (i = 0; i < idx; i++) {
 		msgInfo = tfaContGetmsgInfoFromReg(regInfo);
 		nrMessage = msgInfo->NrOfMessages;
 
-		for (j = 0; j < nrMessage; j++) {
+		for (j = 0; j < nrMessage; j++)
 			msgInfo = tfaContGetNextmsgInfo(msgInfo);
-		}
+
 		regInfo = tfaContGetNextRegFromEndInfo(msgInfo);
 	}
 
@@ -405,12 +404,10 @@ static enum Tfa98xx_Error tfaContWriteVstepMax2_One(struct tfa_device *tfa, stru
 	if ((enable_partial_update) && (new_msg->MessageType == 1)) {
 		/* No patial updates for message type 1 (Coefficients) */
 		enable_partial_update = 0;
-		if ((tfa->rev & 0xff) == 0x88) {
+		if ((tfa->rev & 0xff) == 0x88)
 			use_partial_coeff = 1;
-		}
-		else if ((tfa->rev & 0xff) == 0x13) {
+		else if ((tfa->rev & 0xff) == 0x13)
 			use_partial_coeff = 1;
-		}
 	}
 
 	/* Change Message Len to the actual buffer len */
@@ -480,8 +477,7 @@ static enum Tfa98xx_Error tfaContWriteVstepMax2_One(struct tfa_device *tfa, stru
 
 				offset = 0;
 				*change = cpu_to_be16(*change);
-			}
-			else {
+			} else {
 				n += 3;
 				o += 3;
 				offset++;
@@ -491,9 +487,7 @@ static enum Tfa98xx_Error tfaContWriteVstepMax2_One(struct tfa_device *tfa, stru
 		if (trim == partial) {
 			pr_debug("No Change in message - discarding %d bytes\n", len);
 			len = 0;
-
-		}
-		else if (trim < (partial + len - 3)) {
+		} else if (trim < (partial + len - 3)) {
 			pr_debug("Using partial update: %d -> %d bytes\n", len, (int)(trim - partial + 3));
 
 			/* Add the termination marker */
@@ -504,15 +498,12 @@ static enum Tfa98xx_Error tfaContWriteVstepMax2_One(struct tfa_device *tfa, stru
 			cmdid[2] |= BIT(6);
 			buf = (char*)partial;
 			len = (int)(trim - partial);
-		}
-		else {
+		} else
 			pr_debug("Partial too big - use regular update\n");
-		}
 	}
 
-	if (use_partial_coeff) {
+	if (use_partial_coeff)
 		err = tfa_dsp_partial_coefficients(tfa, old_msg->ParameterData, new_msg->ParameterData);
-	}
 	else if (len) {
 		uint8_t *buffer;
 
@@ -520,9 +511,8 @@ static enum Tfa98xx_Error tfaContWriteVstepMax2_One(struct tfa_device *tfa, stru
 			pr_debug("Command-ID used: 0x%02x%02x%02x \n", cmdid[0], cmdid[1], cmdid[2]);
 
 		buffer = kmem_cache_alloc(tfa->cachep, GFP_KERNEL);
-		if (buffer == NULL) {
+		if (buffer == NULL)
 			err = Tfa98xx_Error_Fail;
-		}
 		else {
 			memcpy(&buffer[0], cmdid, 3);
 			memcpy(&buffer[3], buf, len);
@@ -670,8 +660,7 @@ enum Tfa98xx_Error tfaContWriteFile(struct tfa_device *tfa, TfaFileDsc_t *file, 
 	}
 
 	type = (TfaHeaderType_t)hdr->id;
-	if ((type == msgHdr) || ((type == volstepHdr) && (tfa->tfa_family == 2)))
-	{
+	if ((type == msgHdr) || ((type == volstepHdr) && (tfa->tfa_family == 2))) {
 		subVerString[0] = hdr->subversion[0];
 		subVerString[1] = hdr->subversion[1];
 		subVerString[2] = '\0';
@@ -680,18 +669,15 @@ enum Tfa98xx_Error tfaContWriteFile(struct tfa_device *tfa, TfaFileDsc_t *file, 
 
         if ((subversion > 0) &&
             (((hdr->customer[0]) == 'A') && ((hdr->customer[1]) == 'P') &&
-             ((hdr->customer[2]) == 'I') && ((hdr->customer[3]) == 'V')))
-		{			
+             ((hdr->customer[2]) == 'I') && ((hdr->customer[3]) == 'V'))) {			
                 /* Temporary workaround (example: For climax --calibrate scenario for probus devices) */
                 err = tfaGetFwApiVersion(tfa, (unsigned char *)&tfa->fw_itf_ver[0]);
                 if (err) {
                     pr_debug("[%s] cannot get FWAPI error = %d \n", __FUNCTION__, err);
                     return err;
                 }
-				for (i = 0; i<4; i++)
-				{
-					if (tfa->fw_itf_ver[i] != hdr->customer[i + 4]) //+4 to skip "?PIV" string part in the .msg file.
-					{
+				for (i = 0; i<4; i++) {
+					if (tfa->fw_itf_ver[i] != hdr->customer[i + 4]) {
 						ERRORMSG("Error: tfaContWriteFile: Expected FW API version = %d.%d.%d.%d, Msg File version: %d.%d.%d.%d \n",
 							tfa->fw_itf_ver[0],
 							tfa->fw_itf_ver[1],
@@ -793,9 +779,9 @@ static TfaDescPtr_t *tfa_cnt_get_dsc(TfaContainer_t *cnt, TfaDescriptorType_t ty
 	TfaDescPtr_t *_this;
 	int i;
 
-	if (!dev) {
+	if (!dev)
 		return NULL;
-	}
+
 	/* process the list until a the type is encountered */
 	for (i = 0; i < dev->length; i++) {
 		if (dev->list[i].type == (uint32_t)type) {
@@ -1007,14 +993,11 @@ static enum Tfa98xx_Error tfaRunWriteFilter(struct tfa_device *tfa, TfaContBiqua
 	if (bq->aa.index > 100) {
 		bq->aa.index -= 100;
 		channel = 2;
-	}
-	else if (bq->aa.index > 50) {
+	} else if (bq->aa.index > 50) {
 		bq->aa.index -= 50;
 		channel = 1;
-	}
-	else if ((tfa->rev & 0xff) == 0x88) {
+	} else if ((tfa->rev & 0xff) == 0x88)
 		runs = 2;
-	}
 
 	if (tfa->verbose) {
 		if (channel == 2)
